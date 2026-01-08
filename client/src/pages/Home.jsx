@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import LanguageContext from '../context/LanguageContext';
+import VideoPopup from '../components/VideoPopup';
 
 const Home = () => {
     const navigate = useNavigate();
@@ -86,6 +87,7 @@ const Home = () => {
 
     return (
         <div style={{ background: 'url("https://www.irctc.co.in/nget/assets/images/secondry-bg.jpg") repeat-x bottom', minHeight: 'calc(100vh - 120px)', position: 'relative' }}>
+            <VideoPopup />
 
             {/* Header Text Overlay */}
             <div className="container" style={{ textAlign: 'right', paddingTop: '10px' }}>
