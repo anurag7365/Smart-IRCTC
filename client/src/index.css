@@ -161,15 +161,25 @@ a {
 }
 
 .nav-link {
-  color: #333;
-  font-weight: 600;
-  font-size: 14px;
-  padding: 5px 12px;
+  color: #4b5563;
+  font-weight: 700;
+  font-size: 15px;
+  /* Increased from 13px */
+  padding: 10px 22px;
+  /* Increased from 8px 16px */
   white-space: nowrap;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  text-transform: uppercase;
 }
 
 .nav-link:hover {
-  color: var(--secondary-color);
+  color: var(--primary-color);
+  background-color: #eef2ff;
+  transform: translateY(-1px);
 }
 
 /* 4. Booking Widget (Home) */
@@ -577,8 +587,14 @@ a {
   color: #2e7d32;
 }
 
+.status-rac {
+  color: #0284c7;
+  /* Cyan/Blue for RAC */
+}
+
 .status-wl {
   color: #fb792b;
+  /* Orange/Yellow for Waiting List */
 }
 
 .status-regret {
@@ -659,4 +675,100 @@ a {
   .navbar {
     display: none !important;
   }
+}
+
+/* Navbar User Dropdown - Enhanced */
+.dropdown {
+  position: relative;
+  display: inline-block;
+  height: 100%;
+}
+
+.dropbtn {
+  padding: 8px 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  height: 100%;
+}
+
+.dropbtn:hover {
+  background-color: #f0f4f8;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  /* Removed gap to prevent closing on hover transition */
+  right: 0;
+  background-color: white;
+  min-width: 200px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 1000;
+  border: 1px solid #f0f0f0;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-item {
+  color: #333;
+  padding: 12px 20px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  border-bottom: 1px solid #f9f9f9;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background-color: #f8fafd;
+  color: var(--primary-color);
+}
+
+.dropdown-item.logout {
+  color: #d32f2f;
+}
+
+.dropdown-item.logout:hover {
+  background-color: #ffebee;
 }

@@ -65,32 +65,33 @@ const Navbar = () => {
     }, [location.pathname]);
 
     const navLinks = [
-        { name: t('Trains'), path: '/' },
-        { name: 'LIVE STATUS', path: '/tracking' },
-        { name: 'LOYALTY', path: '/loyalty' },
-        { name: 'IRCTC E-WALLET', path: '/e-wallet' },
-        { name: 'BUSES', path: '/buses' },
-        { name: 'FLIGHTS', path: '/flights' },
-        { name: 'HOTELS', path: '/hotels' },
-        { name: 'HOLIDAYS', path: '/holidays' },
-        { name: 'MEALS', path: '/meals' },
-        { name: 'PROMOTIONS', path: '/promotions' },
-        { name: 'MORE', path: '/more' },
-        { name: t('Contact Us'), path: '/contact' }
+        { name: t('Trains'), path: '/', icon: '🚆' },
+        { name: 'LIVE STATUS', path: '/tracking', icon: '📍' },
+        { name: 'LOYALTY', path: '/loyalty', icon: '💎' },
+        { name: 'BUSES', path: '/buses', icon: '🚌' },
+        { name: 'FLIGHTS', path: '/flights', icon: '✈️' },
+        { name: 'HOTELS', path: '/hotels', icon: '🏨' },
+        { name: 'MEALS', path: '/meals', icon: '🍱' },
+        { name: 'MORE', path: '/more', icon: '▾' }
     ];
 
     return (
         <header>
             {/* Top Bar with Date/Time and Settings */}
             <div className="irctc-header-top">
-                <div className="container" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '15px' }}>
-                    <span style={{ fontWeight: 'bold' }}>{currentTime.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(',', '')}</span>
-                    <span>|</span>
-                    <span className="cursor-pointer" onClick={() => handleFont('Small')}>A-</span>
-                    <span className="cursor-pointer" onClick={() => handleFont('Normal')}>A</span>
-                    <span className="cursor-pointer" onClick={() => handleFont('Large')}>A+</span>
-                    <span>|</span>
-                    <span style={{ fontWeight: 'bold', cursor: 'pointer' }} onClick={toggleLanguage}>{t('Language')}</span>
+                <div className="container" style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ flex: 1 }}></div>
+                    <div style={{ fontWeight: 'bold' }}>
+                        {currentTime.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} [{currentTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '15px' }}>
+                        <span>|</span>
+                        <span className="cursor-pointer" onClick={() => handleFont('Small')}>A-</span>
+                        <span className="cursor-pointer" onClick={() => handleFont('Normal')}>A</span>
+                        <span className="cursor-pointer" onClick={() => handleFont('Large')}>A+</span>
+                        <span>|</span>
+                        <span style={{ fontWeight: 'bold', cursor: 'pointer' }} onClick={toggleLanguage}>{t('Language')}</span>
+                    </div>
                 </div>
             </div>
 
@@ -107,10 +108,28 @@ const Navbar = () => {
                     <div className="flex-col" style={{ alignItems: 'flex-end' }}>
                         <div className="flex gap-4" style={{ marginBottom: '10px', alignItems: 'center' }}>
                             {user ? (
-                                <>
-                                    <span style={{ fontWeight: 'bold', color: '#213d77', fontSize: '13px' }}>{t('Welcome')}, {user.name}</span>
-                                    <button onClick={handleLogout} className="irctc-btn" style={{ padding: '5px 10px', fontSize: '12px', border: '1px solid #ddd', cursor: 'pointer', background: '#ffebee', color: 'red' }}>{t('Logout')}</button>
-                                </>
+                                <div className="dropdown">
+                                    <div className="dropbtn">
+                                        <div className="user-avatar">
+                                            {user.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: '1.2' }}>
+                                            <span style={{ fontSize: '11px', color: '#666' }}>{t('Welcome')}</span>
+                                            <span style={{ fontWeight: 'bold', color: '#213d77', fontSize: '14px' }}>{user.name} ▼</span>
+                                        </div>
+                                    </div>
+                                    <div className="dropdown-content">
+                                        <Link to="/bookings" className="dropdown-item">
+                                            <span>📅</span> {t('My Bookings')}
+                                        </Link>
+                                        <Link to="/my-transactions" className="dropdown-item">
+                                            <span>💳</span> {t('My Transactions')}
+                                        </Link>
+                                        <div onClick={handleLogout} className="dropdown-item logout" style={{ cursor: 'pointer' }}>
+                                            <span>🚪</span> {t('Logout')}
+                                        </div>
+                                    </div>
+                                </div>
                             ) : (
                                 <>
                                     <Link to="/login" className="irctc-btn btn-blue" style={{ padding: '5px 10px', fontSize: '12px' }}>{t('Login')}</Link>
@@ -120,7 +139,7 @@ const Navbar = () => {
                             )}
                         </div>
 
-                        <div ref={navContainerRef} className="flex gap-4 items-center" style={{ position: 'relative' }} onMouseLeave={handleMouseLeave}>
+                        <div ref={navContainerRef} className="flex items-center" style={{ position: 'relative', width: '100%', justifyContent: 'space-between' }} onMouseLeave={handleMouseLeave}>
                             {navLinks.map((link, idx) => (
                                 <Link
                                     key={idx}
@@ -129,6 +148,7 @@ const Navbar = () => {
                                     onMouseEnter={handleMouseEnter}
                                     style={{ borderBottom: 'none' }}
                                 >
+                                    <span style={{ marginRight: '5px', fontSize: '1.1em' }}>{link.icon}</span>
                                     {link.name}
                                 </Link>
                             ))}

@@ -217,7 +217,14 @@ const Home = () => {
                                     <div className="flex gap-2">
                                         <div className="irctc-input-group flex-1">
                                             <span className="irctc-label">{t('Date')}</span>
-                                            <input className="irctc-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+                                            <input 
+                                                className="irctc-input" 
+                                                type="date" 
+                                                min={new Date().toLocaleDateString('en-CA')} 
+                                                value={date} 
+                                                onChange={(e) => setDate(e.target.value)} 
+                                                required 
+                                            />
                                         </div>
                                         <div className="irctc-input-group flex-1">
                                             <span className="irctc-label">{t('All Classes')}</span>

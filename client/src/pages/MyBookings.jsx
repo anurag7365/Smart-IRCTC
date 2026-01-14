@@ -1,12 +1,14 @@
 import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MyBookings = () => {
     const { user } = useContext(AuthContext);
+    const navigate = useNavigate();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('upcoming'); // Moved Hook to top
 
     useEffect(() => {
         const fetchBookings = async () => {
@@ -42,15 +44,19 @@ const MyBookings = () => {
 
     if (loading) return <div className="container" style={{ marginTop: '20px' }}>Loading Bookings...</div>;
 
-    const [activeTab, setActiveTab] = useState('upcoming');
+
 
     const filteredBookings = bookings.filter(b => {
+        const bookingDate = new Date(b.journeyDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         if (activeTab === 'cancelled') return b.status === 'Cancelled';
         if (activeTab === 'upcoming') {
-            return b.status !== 'Cancelled' && new Date(b.journeyDate) >= new Date().setHours(0, 0, 0, 0);
+            return b.status !== 'Cancelled' && bookingDate >= today;
         }
         if (activeTab === 'completed') {
-            return b.status !== 'Cancelled' && new Date(b.journeyDate) < new Date().setHours(0, 0, 0, 0);
+            return b.status !== 'Cancelled' && bookingDate < today;
         }
         return true;
     });
@@ -97,10 +103,15 @@ const MyBookings = () => {
             </div>
 
             {filteredBookings.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '100px 20px', background: '#f9f9f9', borderRadius: '12px', border: '1px dashed #ccc' }}>
-                    <div style={{ fontSize: '50px', marginBottom: '20px' }}>🎫</div>
-                    <h3 style={{ color: '#888' }}>No {activeTab} bookings found</h3>
-                    <p style={{ color: '#999' }}>Looks like you haven't planned any trips in this category yet.</p>
+                <div style={{ padding: '40px', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ background: '#f9f9f9', padding: '40px', borderRadius: '12px', border: '1px dashed #ccc', display: 'inline-block', maxWidth: '600px', width: '100%' }}>
+                        <div style={{ fontSize: '50px', marginBottom: '20px' }}>🎫</div>
+                        <h3 style={{ color: '#213d77', marginBottom: '10px' }}>No {activeTab} bookings found</h3>
+                        <p style={{ color: '#666', marginBottom: '30px' }}>Looks like you haven't planned any trips in this category yet.</p>
+                        <div style={{ marginTop: '20px' }}>
+                            <button onClick={() => navigate('/')} className="irctc-btn btn-blue">Go to Home</button>
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '25px' }}>
@@ -182,6 +193,41 @@ const MyBookings = () => {
                                     >
                                         View Ticket / Status
                                     </Link>
+                                    <button
+                                        onClick={() => {
+                                            const printContent = `
+                                                <html>
+                                                <head><title>Print Ticket</title></head>
+                                                <body style="font-family: Arial, sans-serif; padding: 20px;">
+                                                    <div style="border: 1px solid #ccc; padding: 20px; max-width: 600px; margin: 0 auto;">
+                                                        <h2 style="color: #213d77; text-align: center;">Smart IRCTC E-Ticket</h2>
+                                                        <hr/>
+                                                        <p><strong>PNR:</strong> ${booking.pnr}</p>
+                                                        <p><strong>Train:</strong> ${booking.train.name} (${booking.train.number})</p>
+                                                        <p><strong>Date:</strong> ${new Date(booking.journeyDate).toLocaleDateString()}</p>
+                                                        <p><strong>From:</strong> ${booking.source.name} (${booking.source.code})</p>
+                                                        <p><strong>To:</strong> ${booking.destination.name} (${booking.destination.code})</p>
+                                                        <div style="margin-top: 20px;">
+                                                            <strong>Passengers:</strong>
+                                                            <ul>
+                                                                ${booking.passengers.map(p => `<li>${p.name} - ${p.age}/${p.gender} - ${p.status} ${p.seatNumber ? `(${p.coachCode}/${p.seatNumber})` : ''}</li>`).join('')}
+                                                            </ul>
+                                                        </div>
+                                                        <p style="text-align: right; margin-top: 20px;"><strong>Total Amount: ₹ ${booking.totalAmount}</strong></p>
+                                                    </div>
+                                                    <script>window.print();</script>
+                                                </body>
+                                                </html>
+                                            `;
+                                            const printWindow = window.open('', '', 'height=600,width=800');
+                                            printWindow.document.write(printContent);
+                                            printWindow.document.close();
+                                        }}
+                                        className="irctc-btn"
+                                        style={{ fontSize: '12px', padding: '8px 15px', textTransform: 'none', borderRadius: '4px', background: '#4caf50', color: 'white', border: 'none' }}
+                                    >
+                                        Print E-Ticket
+                                    </button>
                                     {booking.status !== 'Cancelled' && activeTab === 'upcoming' && (
                                         <button
                                             onClick={() => handleCancel(booking._id)}

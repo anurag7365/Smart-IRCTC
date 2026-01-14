@@ -128,8 +128,8 @@ const Booking = () => {
 
             const bookingData = {
                 trainId: train._id,
-                source: train.source._id || train.source,
-                destination: train.destination._id || train.destination,
+                source: sourceStation ? sourceStation._id : (train.source._id || train.source),
+                destination: destStation ? destStation._id : (train.destination._id || train.destination),
                 journeyDate: date,
                 classType: selectedClass,
                 passengers: passengers,

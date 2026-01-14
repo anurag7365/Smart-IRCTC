@@ -21,6 +21,7 @@ import Promotions from './pages/Promotions';
 import More from './pages/More';
 import ContactUs from './pages/ContactUs';
 import LiveTracking from './pages/LiveTracking';
+import MyTransactions from './pages/MyTransactions';
 
 import { LanguageProvider } from './context/LanguageContext';
 
@@ -36,6 +37,7 @@ function App() {
           <Route path="/trains" element={<TrainList />} />
           <Route path="/booking/:id" element={<Booking />} />
           <Route path="/bookings" element={<MyBookings />} />
+          <Route path="/my-transactions" element={<MyTransactions />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/booking-success" element={<BookingSuccess />} />
           <Route path="/pnr/:pnr" element={<PNRStatus />} />

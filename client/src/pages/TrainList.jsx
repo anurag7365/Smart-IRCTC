@@ -110,7 +110,7 @@ const TrainList = () => {
     };
 
     // Handle Class Selection
-    const handleClassSelect = (trainId, cls) => {
+    const handleClassSelect = async (trainId, cls) => {
         const train = trains.find(t => t._id === trainId);
         if (!train) return;
 
@@ -121,35 +121,42 @@ const TrainList = () => {
         const fare = calculateFare(train, cls);
         setCurrentPrice(fare);
 
-        // Generate availability for next 6 days
+        // Fetch availability for next 6 days
         const dates = [];
         const startDate = new Date(date);
+
+        // We will fetch 6 dates in parallel
+        const promises = [];
         for (let i = 0; i < 6; i++) {
             const d = new Date(startDate);
             d.setDate(startDate.getDate() + i);
+            const dateStr = d.toISOString().split('T')[0]; // YYYY-MM-DD
 
-            // Random Status
-            const rand = Math.random();
-            let status = 'AVAILABLE-00' + (Math.floor(Math.random() * 80) + 1);
-            let colorClass = 'status-avl';
-
-            if (rand < 0.2) {
-                status = `RAC-${Math.floor(Math.random() * 10) + 1}`;
-                colorClass = 'status-wl';
-            } else if (rand < 0.4) {
-                status = `WL-${Math.floor(Math.random() * 20) + 1}`;
-                colorClass = 'status-wl';
-            }
-
-            dates.push({
-                fullDate: d,
-                displayDate: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-                day: d.toLocaleDateString('en-US', { weekday: 'short' }),
-                status,
-                colorClass
-            });
+            promises.push(
+                axios.get(`http://localhost:5000/api/trains/${trainId}/availability?date=${dateStr}&classType=${cls}`)
+                    .then(res => ({
+                        fullDate: d,
+                        displayDate: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+                        day: d.toLocaleDateString('en-US', { weekday: 'short' }),
+                        status: res.data.status,
+                        colorClass: res.data.available > 0 ? 'status-avl' : (res.data.racCount > 0 ? 'status-rac' : 'status-wl'),
+                        available: res.data.available,
+                        racCount: res.data.racCount,
+                        wlCount: res.data.wlCount
+                    }))
+                    .catch(e => ({
+                        fullDate: d,
+                        displayDate: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+                        day: d.toLocaleDateString('en-US', { weekday: 'short' }),
+                        status: 'Error',
+                        colorClass: 'status-wl',
+                        available: 0
+                    }))
+            );
         }
-        setAvailabilityData(dates);
+
+        const results = await Promise.all(promises);
+        setAvailabilityData(results);
     };
 
     const handleBookNow = (trainId) => {
@@ -248,7 +255,11 @@ const TrainList = () => {
                                         >
                                             <div className="class-header">{cls}</div>
                                             <div className="class-body">
-                                                <div className="availability">Refresh</div>
+                                                <div className="availability">
+                                                    {expandedTrainId === train._id && selectedClass === cls && availabilityData[0]
+                                                        ? (availabilityData[0].available > 0 ? `AVL ${availabilityData[0].available}` : availabilityData[0].status)
+                                                        : 'Refresh'}
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -268,7 +279,7 @@ const TrainList = () => {
                                                     <div className="date-card-date">
                                                         {d.displayDate}, {d.day}
                                                     </div>
-                                                    <div className={`date-card-status ${d.colorClass}`}>
+                                                    <div className={`date-card-status ${d.colorClass}`} style={{ fontWeight: 'bold' }}>
                                                         {d.status}
                                                     </div>
                                                 </div>

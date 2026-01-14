@@ -20,13 +20,13 @@ const createBooking = async (req, res) => {
     try {
         // 1. Run Smart Seat Allocation
         // This function returns the passengers with assigned seats and the modified coach objects
-        const { allocatedPassengers, coaches } = await allocateSeats(passengers, trainId, classType);
+        // 1. Run Smart Seat Allocation
+        // This function returns the passengers with assigned seats and the modified coach objects
+        // (Note: we no longer save 'isBooked' to the Coach model directly to support multiple dates)
+        const { allocatedPassengers, coaches } = await allocateSeats(passengers, trainId, classType, journeyDate);
 
         // 2. Save Updated Coach Data (Mark seats as booked)
-        // In a real app, use a Transaction (Session) for atomicity
-        for (const coach of coaches) {
-            await coach.save();
-        }
+        // SKIPPED: We now track bookings via Booking model + Date check instead of mutating Coach.
 
         // 3. Generate PNR (Simple Random String for MVP)
         const pnr = Math.floor(1000000000 + Math.random() * 9000000000).toString();
@@ -64,13 +64,14 @@ const createBooking = async (req, res) => {
 const getMyBookings = async (req, res) => {
     try {
         const bookings = await Booking.find({ user: req.user._id })
-            .populate('train', 'name number')
+            .populate('train', 'name number route')
             .populate('source', 'name code')
             .populate('destination', 'name code');
 
         res.json(bookings);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error in getMyBookings:', error);
+        res.status(500).json({ message: 'Failed to fetch bookings', error: error.message, stack: error.stack });
     }
 };
 
@@ -114,7 +115,7 @@ const cancelBooking = async (req, res) => {
 const getBookingByPNR = async (req, res) => {
     try {
         const booking = await Booking.findOne({ pnr: req.params.pnr })
-            .populate('train', 'name number')
+            .populate('train', 'name number route')
             .populate('source', 'name code')
             .populate('destination', 'name code');
 
