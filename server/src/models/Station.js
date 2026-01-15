@@ -14,6 +14,22 @@ const stationSchema = new mongoose.Schema({
     location: {
         type: String, // City or Region
     },
+    state: {
+        type: String,
+        required: true,
+        default: 'India'
+    },
+    zone: {
+        type: String, // e.g., NR, WR, SR
+        required: true,
+        default: 'IR'
+    },
+    latitude: {
+        type: Number,
+    },
+    longitude: {
+        type: Number,
+    },
 
 }, {
     timestamps: true,

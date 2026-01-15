@@ -165,6 +165,7 @@ const Home = () => {
                                                             s.name.toLowerCase().includes(fromSearch.toLowerCase()) ||
                                                             s.code.toLowerCase().includes(fromSearch.toLowerCase())
                                                         )
+                                                        .slice(0, 50)
                                                         .map(s => (
                                                             <li key={s._id} onMouseDown={() => { setFrom(s._id); setFromSearch(`${s.name} (${s.code})`); setShowFromList(false); }} style={{ padding: '10px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px' }} onMouseOver={(e) => e.target.style.background = '#f0f4f8'} onMouseOut={(e) => e.target.style.background = 'white'}>
                                                                 <div style={{ fontWeight: '600' }}>{s.name}</div>
@@ -200,6 +201,7 @@ const Home = () => {
                                                             s.name.toLowerCase().includes(toSearch.toLowerCase()) ||
                                                             s.code.toLowerCase().includes(toSearch.toLowerCase())
                                                         )
+                                                        .slice(0, 50)
                                                         .map(s => (
                                                             <li key={s._id} onMouseDown={() => { setTo(s._id); setToSearch(`${s.name} (${s.code})`); setShowToList(false); }} style={{ padding: '10px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px' }} onMouseOver={(e) => e.target.style.background = '#f0f4f8'} onMouseOut={(e) => e.target.style.background = 'white'}>
                                                                 <div style={{ fontWeight: '600' }}>{s.name}</div>
@@ -217,13 +219,13 @@ const Home = () => {
                                     <div className="flex gap-2">
                                         <div className="irctc-input-group flex-1">
                                             <span className="irctc-label">{t('Date')}</span>
-                                            <input 
-                                                className="irctc-input" 
-                                                type="date" 
-                                                min={new Date().toLocaleDateString('en-CA')} 
-                                                value={date} 
-                                                onChange={(e) => setDate(e.target.value)} 
-                                                required 
+                                            <input
+                                                className="irctc-input"
+                                                type="date"
+                                                min={new Date().toLocaleDateString('en-CA')}
+                                                value={date}
+                                                onChange={(e) => setDate(e.target.value)}
+                                                required
                                             />
                                         </div>
                                         <div className="irctc-input-group flex-1">

@@ -24,6 +24,23 @@ const Booking = () => {
     const [passengers, setPassengers] = useState([{ name: '', age: '', gender: 'Male', aadhaar: '', berthPreference: 'No Preference', isHandicapped: false }]);
     const [selectedClass, setSelectedClass] = useState('');
 
+    // Master List State
+    const [masterList, setMasterList] = useState([]);
+    const [showMasterList, setShowMasterList] = useState(false);
+
+    useEffect(() => {
+        const fetchMasterList = async () => {
+            if (user && user.token) {
+                try {
+                    const config = { headers: { Authorization: `Bearer ${user.token}` } };
+                    const { data } = await axios.get('http://localhost:5000/api/users/masterlist', config);
+                    setMasterList(data);
+                } catch (error) { console.error('Error fetching master list', error); }
+            }
+        };
+        fetchMasterList();
+    }, [user]);
+
     // Dynamic Berth Options Helper
     const getBerthOptions = (classType) => {
         const options = ['No Preference'];
@@ -70,15 +87,15 @@ const Booking = () => {
     useEffect(() => {
         const fetchTrain = async () => {
             try {
-                const { data } = await axios.get(`http://localhost:5000/api/trains`);
-                const foundTrain = data.find(t => t._id === id);
-                setTrain(foundTrain);
-                if (foundTrain && foundTrain.classes.length > 0 && !classParam) setSelectedClass(foundTrain.classes[0]);
+                // Fetch ONLY the specific train
+                const { data } = await axios.get(`http://localhost:5000/api/trains/${id}`);
+                setTrain(data);
+                if (data && data.classes.length > 0 && !classParam) setSelectedClass(data.classes[0]);
             } catch (error) {
                 console.error(error);
             }
         };
-        fetchTrain();
+        if (id) fetchTrain();
     }, [id, classParam]);
 
     // Fetch Station Names
@@ -243,16 +260,80 @@ const Booking = () => {
                         <div style={modernCard}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                                 <h3 style={{ margin: 0, fontSize: '18px', color: '#1f2937' }}>Traveller Details</h3>
-                                <span style={{ fontSize: '12px', color: '#ef4444' }}>* Max 6 passengers</span>
+
+                                {/* Master List Dropdown */}
+                                {masterList.length > 0 && (
+                                    <div style={{ position: 'relative' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowMasterList(!showMasterList)}
+                                            style={{ background: '#e0f2fe', color: '#0284c7', border: '1px solid #bae6fd', padding: '5px 10px', borderRadius: '5px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                                        >
+                                            ★ Select Saved Passenger
+                                        </button>
+                                        {showMasterList && (
+                                            <div style={{ position: 'absolute', right: 0, top: '100%', width: '250px', background: 'white', border: '1px solid #ddd', borderRadius: '5px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', zIndex: 10 }}>
+                                                {masterList.map((mp, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        onClick={() => {
+                                                            // Find first empty slot or add new
+                                                            const emptyIndex = passengers.findIndex(p => !p.name);
+                                                            if (emptyIndex !== -1) {
+                                                                const newP = [...passengers];
+                                                                newP[emptyIndex] = { ...newP[emptyIndex], name: mp.name, age: mp.age, gender: mp.gender, berthPreference: mp.berthPreference || 'No Preference', aadhaar: mp.aadhaar || '' };
+                                                                setPassengers(newP);
+                                                            } else if (passengers.length < 6) {
+                                                                setPassengers([...passengers, { name: mp.name, age: mp.age, gender: mp.gender, berthPreference: mp.berthPreference || 'No Preference', aadhaar: mp.aadhaar || '', isHandicapped: false }]);
+                                                            } else {
+                                                                alert('Max 6 passengers allowed');
+                                                            }
+                                                            setShowMasterList(false);
+                                                        }}
+                                                        style={{ padding: '10px', borderBottom: '1px solid #eee', cursor: 'pointer', fontSize: '13px' }}
+                                                        onMouseOver={(e) => e.target.style.background = '#f9fafb'}
+                                                        onMouseOut={(e) => e.target.style.background = 'white'}
+                                                    >
+                                                        <strong>{mp.name}</strong> ({mp.age}, {mp.gender})
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             {passengers.map((p, index) => (
                                 <div key={index} style={{ marginBottom: '20px', paddingBottom: '20px', borderBottom: index !== passengers.length - 1 ? '1px dashed #e5e7eb' : 'none' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                         <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#374151' }}>Passenger {index + 1}</div>
-                                        {passengers.length > 1 && (
-                                            <button type="button" onClick={() => removePassenger(index)} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>REMOVE</button>
-                                        )}
+                                        <div style={{ display: 'flex', gap: '15px' }}>
+                                            {/* Save to Master List Button */}
+                                            {p.name && p.age && (
+                                                <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                        try {
+                                                            const token = user.token;
+                                                            const config = { headers: { 'Authorization': `Bearer ${token}` } };
+                                                            await axios.post('http://localhost:5000/api/users/masterlist', {
+                                                                name: p.name, age: p.age, gender: p.gender, berthPreference: p.berthPreference, aadhaar: p.aadhaar
+                                                            }, config);
+                                                            alert('Passenger Saved to Master List!');
+                                                            // Refresh list
+                                                            const { data } = await axios.get('http://localhost:5000/api/users/masterlist', config);
+                                                            setMasterList(data);
+                                                        } catch (err) { alert('Failed to save'); }
+                                                    }}
+                                                    style={{ color: '#059669', background: 'none', border: 'none', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                                                >
+                                                    + SAVE
+                                                </button>
+                                            )}
+                                            {passengers.length > 1 && (
+                                                <button type="button" onClick={() => removePassenger(index)} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>REMOVE</button>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div style={{ display: 'grid', gridTemplateColumns: '2fr 0.8fr 1fr 1.2fr 1.5fr', gap: '15px' }}>

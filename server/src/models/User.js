@@ -20,6 +20,13 @@ const userSchema = new mongoose.Schema({
         enum: ['passenger', 'admin'],
         default: 'passenger',
     },
+    masterList: [{
+        name: { type: String, required: true },
+        age: { type: Number, required: true },
+        gender: { type: String, required: true },
+        berthPreference: { type: String, default: 'No Preference' },
+        aadhaar: { type: String }
+    }],
 }, {
     timestamps: true,
 });

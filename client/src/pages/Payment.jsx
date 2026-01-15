@@ -2,6 +2,7 @@ import { useState, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
+import './Payment.css';
 
 const Payment = () => {
     const { state } = useLocation();
@@ -34,8 +35,8 @@ const Payment = () => {
                 }
             };
 
-            // Simulate Network Delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Simulate Network Delay (Express)
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
             const { data } = await axios.post('http://localhost:5000/api/bookings', bookingData, config);
 
@@ -55,54 +56,117 @@ const Payment = () => {
         }
     };
 
+    // State for Tabs
+    const [activeTab, setActiveTab] = useState('ipay'); // ipay, multiple, netbanking, gateway, upi
+
     return (
-        <div style={{ background: '#f5f5f5', minHeight: '100vh', padding: '50px 0' }}>
-            <div className="container" style={{ maxWidth: '600px', background: 'white', padding: '30px', borderRadius: '10px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
-                <h2 style={{ color: '#213d77', textAlign: 'center', marginBottom: '30px' }}>Payment Gateway</h2>
+        <div className="payment-page-container">
+            {/* Header */}
+            <div className="payment-header">
+                <div className="container">
+                    <h2>Payment Details</h2>
+                </div>
+            </div>
 
-                <div style={{ marginBottom: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '5px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                        <span style={{ color: '#666' }}>Amount to Pay:</span>
-                        <span style={{ fontSize: '20px', fontWeight: 'bold' }}>₹ {bookingData.totalAmount.toFixed(2)}</span>
+            <div className="container payment-grid">
+                {/* 1. Payment Methods Sidebar */}
+                <div className="payment-methods-card">
+                    <div className="method-header">Payment Methods</div>
+                    <div className={`method-item ${activeTab === 'ipay' ? 'active' : ''}`} onClick={() => setActiveTab('ipay')}>IRCTC iPay</div>
+                    <div className={`method-item ${activeTab === 'multiple' ? 'active' : ''}`} onClick={() => setActiveTab('multiple')}>Multiple Payment Service</div>
+                    <div className={`method-item ${activeTab === 'netbanking' ? 'active' : ''}`} onClick={() => setActiveTab('netbanking')}>Net Banking</div>
+                    <div className={`method-item ${activeTab === 'gateway' ? 'active' : ''}`} onClick={() => setActiveTab('gateway')}>Payment Gateway / Credit / Debit</div>
+                    <div className={`method-item ${activeTab === 'upi' ? 'active' : ''}`} onClick={() => setActiveTab('upi')}>UPI</div>
+                </div>
+
+                {/* 2. Main Content Area */}
+                <div className="payment-content-card">
+                    <div className="sub-header">
+                        {activeTab === 'ipay' && 'IRCTC iPay (Credit/Debit Card | Net Banking | UPI)'}
+                        {activeTab === 'multiple' && 'Multiple Payment Services'}
+                        {activeTab === 'netbanking' && 'Internet Banking'}
+                        {activeTab === 'gateway' && 'Payment Gateway / Credit / Debit'}
+                        {activeTab === 'upi' && 'Bhim / UPI / USSD'}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#666' }}>Transaction ID:</span>
-                        <span style={{ fontWeight: '500' }}>TXN{Math.floor(Math.random() * 1000000000)}</span>
+
+                    {/* Dynamic Content based on Tab */}
+                    {activeTab === 'ipay' && (
+                        <div>
+                            <div className="payment-option-box">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <input type="radio" checked readOnly style={{ width: '20px', height: '20px', accentColor: '#fb792b' }} />
+                                    <span style={{ fontWeight: 'bold', color: '#333' }}>Credit/Debit Card | Net Banking | UPI</span>
+                                </div>
+                                <div className="gateway-logos" style={{ display: 'flex', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '12px', color: '#666', marginRight: '5px' }}>Powered by</span>
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png" alt="Visa" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/cb/Rupay-Logo.png" alt="RuPay" />
+                                </div>
+                            </div>
+
+                            {/* Dummy Card Inputs for show */}
+                            <div style={{ background: '#fafafa', padding: '20px', border: '1px solid #eee', borderRadius: '4px', marginTop: '10px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                                    <input type="text" placeholder="Card Number" style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '100%' }} />
+                                    <input type="text" placeholder="Name on Card" style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '100%' }} />
+                                </div>
+                                <div style={{ display: 'flex', gap: '15px' }}>
+                                    <input type="text" placeholder="Expiry (MM/YY)" style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '120px' }} />
+                                    <input type="password" placeholder="CVV" style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '80px' }} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'netbanking' && (
+                        <div style={{ color: '#666', marginBottom: '20px' }}>Select your bank from the list to proceed securely.</div>
+                    )}
+
+                    {activeTab === 'upi' && (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" style={{ height: '40px', marginBottom: '10px' }} alt="UPI" />
+                            <p>Enter your VPA or Scan QR code on next screen.</p>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={handlePayment}
+                        disabled={isLoading}
+                        className="pay-btn-large"
+                    >
+                        {isLoading ? 'Processing...' : 'Pay & Book'}
+                    </button>
+                    <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '12px', color: '#999' }}>
+                        By clicking "Pay & Book" you agree to our Terms & Conditions.
                     </div>
                 </div>
 
-                <div style={{ marginBottom: '30px' }}>
-                    <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Select Payment Method:</p>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <div style={{ flex: 1, padding: '15px', border: '2px solid #fb792b', borderRadius: '5px', textAlign: 'center', color: '#fb792b', fontWeight: 'bold', background: '#fff0e5' }}>
-                            UPI / QMarl
-                        </div>
-                        <div style={{ flex: 1, padding: '15px', border: '1px solid #ddd', borderRadius: '5px', textAlign: 'center', color: '#666' }}>
-                            Card
-                        </div>
-                        <div style={{ flex: 1, padding: '15px', border: '1px solid #ddd', borderRadius: '5px', textAlign: 'center', color: '#666' }}>
-                            Net Banking
-                        </div>
+                {/* 3. Transaction Summary */}
+                <div className="summary-card">
+                    <div className="summary-header">Transaction Summary</div>
+                    <div className="summary-row">
+                        <span>Ticket Fare</span>
+                        <span>₹ {bookingData.totalAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="summary-row">
+                        <span>IRCTC Convenience Fee</span>
+                        <span>₹ 11.80</span>
+                    </div>
+                    <div className="summary-row">
+                        <span>Travel Insurance</span>
+                        <span>₹ 0.00</span>
+                    </div>
+
+                    <div className="total-row">
+                        <span>Total Amount</span>
+                        <span>₹ {(bookingData.totalAmount + 11.80).toFixed(2)}</span>
+                    </div>
+
+                    <div style={{ marginTop: '20px', fontSize: '11px', color: '#666', background: '#ffebee', padding: '10px', borderRadius: '4px' }}>
+                        <strong>Note:</strong> Transaction failure is rare but possible. Do not press back or refresh while processing.
                     </div>
                 </div>
-
-                <button
-                    onClick={handlePayment}
-                    disabled={isLoading}
-                    style={{
-                        width: '100%',
-                        padding: '15px',
-                        background: isLoading ? '#ccc' : '#4caf50',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        cursor: isLoading ? 'not-allowed' : 'pointer'
-                    }}
-                >
-                    {isLoading ? 'Processing Payment...' : `Pay ₹ ${bookingData.totalAmount.toFixed(2)}`}
-                </button>
             </div>
         </div>
     );

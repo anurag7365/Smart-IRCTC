@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
+import './TrainList.css';
 
 // Mock Price Configuration (Dynamic Base Prices)
 const BASE_PRICES = {
@@ -118,8 +119,24 @@ const TrainList = () => {
         setSelectedClass(cls);
         setSelectedDateIndex(0);
 
-        const fare = calculateFare(train, cls);
-        setCurrentPrice(fare);
+        // Fetch Dynamic Fare from API using Map Logic
+        const sourceCode = train.source.code;
+        const destCode = train.destination.code;
+
+        try {
+            const { data } = await axios.post('http://localhost:5000/api/fares/calculate', {
+                from: sourceCode,
+                to: destCode,
+                trainType: train.type || 'Express',
+                classType: cls,
+                quota: 'GN'
+            });
+            setCurrentPrice(data.totalFare);
+        } catch (error) {
+            console.error('Error fetching fare:', error);
+            // Fallback to local if API fails (e.g. missing coordinates)
+            setCurrentPrice(calculateFare(train, cls));
+        }
 
         // Fetch availability for next 6 days
         const dates = [];
@@ -177,6 +194,59 @@ const TrainList = () => {
         return new Date(dateString).toLocaleDateString('en-US', options);
     };
 
+    // Helper to get timing for specific train and route
+    const getTrainTiming = (train) => {
+        const sourceCode = sourceStation ? sourceStation.code : from;
+        const destCode = destStation ? destStation.code : to;
+
+        // Find route stops. Handle both populated objects and ID references
+        const startStop = train.route.find(r => {
+            const s = r.station;
+            return (s.code === sourceCode) || (s._id === from) || (s === from);
+        });
+        const endStop = train.route.find(r => {
+            const s = r.station;
+            return (s.code === destCode) || (s._id === to) || (s === to);
+        });
+
+        const departureTime = startStop ? startStop.departureTime : '00:00';
+        const arrivalTime = endStop ? endStop.arrivalTime : '00:00';
+
+        // Calculate Duration
+        let duration = "00h 00m";
+        try {
+            const [depH, depM] = departureTime.split(':').map(Number);
+            const [arrH, arrM] = arrivalTime.split(':').map(Number);
+
+            let diffH = arrH - depH;
+            let diffM = arrM - depM;
+
+            // Adjust for next day arrival (simple logic)
+            // Ideally we should use dayCount diff, but fall back to 24h wrap for now
+            let dayDiff = 0;
+            if (endStop && startStop && endStop.dayCount && startStop.dayCount) {
+                dayDiff = endStop.dayCount - startStop.dayCount;
+            }
+
+            // If day diff is known, add hours
+            diffH += (dayDiff * 24);
+
+            // If dayCount missing but time is backward, assume next day
+            if (dayDiff === 0 && (diffH < 0 || (diffH === 0 && diffM < 0))) {
+                diffH += 24;
+            }
+
+            if (diffM < 0) {
+                diffH -= 1;
+                diffM += 60;
+            }
+
+            duration = `${diffH}h ${diffM.toString().padStart(2, '0')}m`;
+        } catch (e) { }
+
+        return { departureTime, arrivalTime, duration };
+    };
+
     if (loading) {
         return (
             <div className="container" style={{ textAlign: 'center', marginTop: '100px' }}>
@@ -189,123 +259,121 @@ const TrainList = () => {
     return (
         <div className="container train-list-container">
             {/* Search Summary Header */}
-            <div style={{ marginBottom: '20px' }}>
-                <h2 style={{ color: '#213d77', margin: '0 0 5px 0' }}>
-                    {trains.length} Results for {sourceStation ? `${sourceStation.name} (${sourceStation.code})` : from} <span style={{ color: '#fb792b' }}>➔</span> {destStation ? `${destStation.name} (${destStation.code})` : to}
-                </h2>
-                <div style={{ color: '#666', fontSize: '14px' }}>
-                    Journey Date: <strong>{formatDate(date)}</strong> | Quota: <strong>General</strong>
+            <div className="search-summary">
+                <div>
+                    <h2>
+                        {trains.length} Results for {sourceStation ? `${sourceStation.name}` : from} <span style={{ color: '#fb792b' }}>➔</span> {destStation ? `${destStation.name}` : to}
+                    </h2>
+                    <div style={{ color: '#666', fontSize: '13px', marginTop: '4px' }}>
+                        Journey Date: <strong>{formatDate(date)}</strong> | Quota: <strong>General</strong>
+                    </div>
+                </div>
+                <div>
+                    {/* Placeholder for Next/Prev day buttons */}
+                    <button className="irctc-btn" style={{ marginRight: '10px', fontSize: '12px' }}>&lt; Previous Day</button>
+                    <button className="irctc-btn" style={{ fontSize: '12px' }}>Next Day &gt;</button>
                 </div>
             </div>
 
             {/* Train List */}
-            <div style={{ marginTop: '20px' }}>
+            <div style={{ marginTop: '10px' }}>
                 {trains.length === 0 ? (
                     <div className="train-card" style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
-                        <h3>No direct or connecting trains found for this route.</h3>
-                        <p>Try searching for a nearby station or changing the date.</p>
+                        <h3>No trains found.</h3>
+                        <p>Try searching for a different date.</p>
                     </div>
                 ) : (
                     trains.map((train) => (
                         <div key={train._id} className="train-card">
-                            {/* Train Header */}
-                            <div className="train-header">
-                                <div className="flex items-center">
-                                    {train.type === 'INDIRECT' && <span className="badge-indirect">Connecting via {train.transferStation}</span>}
-                                    {train.type === 'NEARBY' && <span className="badge-nearby">Nearby Station</span>}
-
-                                    <div className="train-name">{train.name}</div>
-                                    <div className="train-number">({train.number})</div>
+                            {/* 1. Header */}
+                            <div className="train-card-header">
+                                <div className="train-name-box">
+                                    <span className="train-title">{train.name} ({train.number})</span>
                                 </div>
-                                <div className="train-days">
-                                    Runs On: {Array.isArray(train.daysOfOperation) ? train.daysOfOperation.join(' ') : 'Daily'}
+                                <div className="train-runs-on">
+                                    Runs On:
+                                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => {
+                                        // Simple logic: assume daily if not specified, otherwise check array
+                                        const isRunning = !train.daysOfOperation || train.daysOfOperation.includes(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]);
+                                        return <span key={i} className={`runs-day ${isRunning ? 'active' : ''}`}>{day} </span>
+                                    })}
                                 </div>
                             </div>
 
-                            {/* Train Body */}
-                            <div className="train-body" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-                                {/* Basic Info Row */}
-                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-                                    {/* Route Info */}
-                                    {/* Route Info */}
-                                    <div className="train-route-info">
-                                        <div className="station-info">
-                                            <div className="station-code">{train.source.code}</div>
-                                            <div className="station-name">{train.source.name}</div>
-                                            <div style={{ fontWeight: 'bold', marginTop: '5px' }}>06:00</div>
+                            {/* 2. Journey Details */}
+                            {/* 2. Journey Details */}
+                            {(() => {
+                                const timing = getTrainTiming(train);
+                                // Use search context stations if available, else fallback to search params
+                                const dispSource = sourceStation ? sourceStation.code : from;
+                                const dispDest = destStation ? destStation.code : to;
+
+                                return (
+                                    <div className="journey-row">
+                                        <div className="station-time-box">
+                                            <span className="time-big">{timing.departureTime}</span>
+                                            <span className="station-details">| {dispSource} | {new Date(date).toLocaleDateString()}</span>
                                         </div>
-
-                                        <div className="duration-line"></div>
-
-                                        <div className="station-info">
-                                            <div className="station-code">{train.destination.code}</div>
-                                            <div className="station-name">{train.destination.name}</div>
-                                            <div style={{ fontWeight: 'bold', marginTop: '5px' }}>14:30</div>
+                                        <div className="duration-box">
+                                            <div className="duration-line"></div>
+                                            <span className="duration-text">{timing.duration}</span>
+                                        </div>
+                                        <div className="station-time-box">
+                                            <span className="time-big">{timing.arrivalTime}</span>
+                                            <span className="station-details">| {dispDest} | {new Date(date).toLocaleDateString()}</span>
                                         </div>
                                     </div>
-                                </div>
+                                );
+                            })()}
 
-                                {/* Class Selection Row */}
-                                <div className="class-container">
-                                    {train.classes.map((cls) => (
-                                        <div
-                                            key={cls}
-                                            className={`class-box ${expandedTrainId === train._id && selectedClass === cls ? 'active-class' : ''}`}
-                                            onClick={() => handleClassSelect(train._id, cls)}
-                                        >
-                                            <div className="class-header">{cls}</div>
-                                            <div className="class-body">
-                                                <div className="availability">
-                                                    {expandedTrainId === train._id && selectedClass === cls && availabilityData[0]
-                                                        ? (availabilityData[0].available > 0 ? `AVL ${availabilityData[0].available}` : availabilityData[0].status)
-                                                        : 'Refresh'}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                            {/* 3. Class Tabs */}
+                            <div className="class-tabs">
+                                {train.classes.map((cls) => (
+                                    <div
+                                        key={cls}
+                                        className={`class-tab ${expandedTrainId === train._id && selectedClass === cls ? 'active' : ''}`}
+                                        onClick={() => handleClassSelect(train._id, cls)}
+                                    >
+                                        {/* Display Full Name mapping could be added here */}
+                                        {cls === 'SL' ? 'Sleeper (SL)' : cls === '3A' ? 'AC 3 Tier (3A)' : cls === '2A' ? 'AC 2 Tier (2A)' : cls}
+                                    </div>
+                                ))}
+                            </div>
 
-                                {/* Expanded Details Section */}
-                                {expandedTrainId === train._id && (
-                                    <div className="train-expanded-section">
-                                        {/* Date Strip */}
-                                        <div className="date-strip">
-                                            {availabilityData.map((d, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    className={`date-card ${selectedDateIndex === idx ? 'selected' : ''}`}
-                                                    onClick={() => setSelectedDateIndex(idx)}
-                                                >
-                                                    <div className="date-card-date">
-                                                        {d.displayDate}, {d.day}
-                                                    </div>
-                                                    <div className={`date-card-status ${d.colorClass}`} style={{ fontWeight: 'bold' }}>
-                                                        {d.status}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {/* Action Bar */}
-                                        <div className="booking-action-bar">
-                                            <div className="price-display">
-                                                <span>₹ {currentPrice}</span>
-                                            </div>
-                                            <button
-                                                className="irctc-btn btn-orange"
-                                                onClick={() => handleBookNow(train._id)}
+                            {/* 4. Availability Strip & Refresh Logic */}
+                            {expandedTrainId === train._id && (
+                                <div style={{ background: '#fff' }}>
+                                    <div className="availability-strip">
+                                        {availabilityData.map((d, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`availability-box ${selectedDateIndex === idx ? 'selected' : ''}`}
+                                                onClick={() => setSelectedDateIndex(idx)}
                                             >
-                                                Book Now
-                                            </button>
-                                        </div>
+                                                <div className="date-text">{d.displayDate}</div>
+                                                <div className={`status-text ${d.colorClass}`}>
+                                                    {d.available > 0 ? `AVL ${d.available}` : d.status}
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                )}
-                            </div>
 
-                            {/* Footer / Context Info for Indirect */}
-                            {train.type === 'INDIRECT' && (
-                                <div style={{ background: '#fff8e1', padding: '10px 15px', fontSize: '12px', borderTop: '1px solid #ffe0b2', color: '#f57c00' }}>
-                                    <strong>Note:</strong> This is a connecting journey. You will switch trains at <strong>{train.transferStation}</strong>.
+                                    {/* 5. Footer Action */}
+                                    <div className="card-footer">
+                                        <button
+                                            className="book-btn"
+                                            onClick={() => handleBookNow(train._id)}
+                                        >
+                                            Book Now <span style={{ fontSize: '16px', marginLeft: '5px' }}>₹ {currentPrice}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Prompt to select class if not expanded */}
+                            {expandedTrainId !== train._id && (
+                                <div style={{ padding: '10px', textAlign: 'center', fontSize: '12px', color: '#666' }}>
+                                    Select a class to view availability and fare
                                 </div>
                             )}
                         </div>

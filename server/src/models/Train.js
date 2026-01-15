@@ -18,6 +18,11 @@ const stopSchema = new mongoose.Schema({
         type: Number, // in km
         required: true,
     },
+    dayCount: {
+        type: Number,
+        default: 1,
+        required: true
+    }
 
 });
 
@@ -27,6 +32,12 @@ const trainSchema = new mongoose.Schema({
         required: true,
     },
 
+    type: {
+        type: String,
+        enum: ['Express', 'Superfast', 'Rajdhani', 'Shatabdi', 'Vande Bharat', 'Duronto', 'Passenger', 'Mail'],
+        required: true,
+        default: 'Express'
+    },
     number: {
         type: String,
         required: true,

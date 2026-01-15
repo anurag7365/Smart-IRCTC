@@ -225,6 +225,26 @@ const searchTrains = async (req, res) => {
     }
 };
 
+// @desc    Get single train by ID
+// @route   GET /api/trains/:id
+// @access  Public
+const getTrainById = async (req, res) => {
+    try {
+        const train = await Train.findById(req.params.id)
+            .populate('source', 'name code')
+            .populate('destination', 'name code')
+            .populate('route.station', 'name code');
+
+        if (train) {
+            res.json(train);
+        } else {
+            res.status(404).json({ message: 'Train not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Get coaches for a train
 // @route   GET /api/trains/:id/coaches
 // @access  Public
@@ -326,4 +346,4 @@ const getTrainAvailability = async (req, res) => {
     }
 };
 
-module.exports = { getTrains, createTrain, searchTrains, getTrainCoaches, getTrainAvailability };
+module.exports = { getTrains, getTrainById, createTrain, searchTrains, getTrainCoaches, getTrainAvailability };

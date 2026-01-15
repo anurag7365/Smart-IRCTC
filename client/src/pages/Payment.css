@@ -1,0 +1,168 @@
+/* Payment.css */
+.payment-page-container {
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    padding-bottom: 50px;
+}
+
+/* Header */
+.payment-header {
+    background: white;
+    border-bottom: 4px solid #fb792b;
+    /* IRCTC Orange accent */
+    padding: 15px 0;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.payment-header h2 {
+    color: #213d77;
+    margin: 0;
+    font-size: 24px;
+}
+
+/* Grid Layout */
+.payment-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr 300px;
+    /* Methods | Content | Summary */
+    gap: 20px;
+    align-items: start;
+}
+
+/* Payment Methods (Left) */
+.payment-methods-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.method-header {
+    background: #f0f0f0;
+    padding: 15px;
+    font-weight: bold;
+    color: #333;
+    border-bottom: 1px solid #ddd;
+}
+
+.method-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    font-size: 14px;
+    color: #555;
+    transition: all 0.2s;
+    border-left: 4px solid transparent;
+}
+
+.method-item:hover {
+    background: #f9f9f9;
+}
+
+.method-item.active {
+    background: #fff;
+    border-left: 4px solid #fb792b;
+    color: #fb792b;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-right: -1px;
+    /* Blend with content area check */
+    position: relative;
+    z-index: 10;
+}
+
+/* Payment Content (Center) */
+.payment-content-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    min-height: 400px;
+}
+
+.sub-header {
+    font-size: 18px;
+    color: #fb792b;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.payment-option-box {
+    border: 1px solid #005b9f;
+    border-radius: 4px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f0f8ff;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+
+.pay-btn-large {
+    background: #fb792b;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 20px;
+    transition: background 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.pay-btn-large:hover {
+    background: #e6691c;
+}
+
+.pay-btn-large:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* Transaction Summary (Right) */
+.summary-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+}
+
+.summary-header {
+    font-size: 16px;
+    font-weight: bold;
+    color: #213d77;
+    margin-bottom: 15px;
+    border-bottom: 1px dashed #ccc;
+    padding-bottom: 10px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #555;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed #ccc;
+    font-weight: bold;
+    font-size: 18px;
+    color: #213d77;
+}
+
+/* Logos */
+.gateway-logos img {
+    height: 25px;
+    margin-left: 5px;
+}

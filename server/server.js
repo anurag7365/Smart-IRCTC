@@ -20,8 +20,10 @@ const bookingRoutes = require('./src/routes/bookingRoutes');
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', require('./src/routes/userRoutes'));
 app.use('/api', masterRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/fares', require('./src/routes/fareRoutes'));
 app.get('/', (req, res) => {
     res.send('SmartIRCTC Backend is running');
 });
