@@ -18,6 +18,7 @@ const stopSchema = new mongoose.Schema({
         type: Number, // in km
         required: true,
     },
+
 });
 
 const trainSchema = new mongoose.Schema({
@@ -25,6 +26,7 @@ const trainSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+
     number: {
         type: String,
         required: true,

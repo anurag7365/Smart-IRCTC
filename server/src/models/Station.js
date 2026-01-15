@@ -14,6 +14,7 @@ const stationSchema = new mongoose.Schema({
     location: {
         type: String, // City or Region
     },
+
 }, {
     timestamps: true,
 });

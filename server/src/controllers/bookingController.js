@@ -99,7 +99,7 @@ const cancelBooking = async (req, res) => {
 
         // Return seats to pool (Simplified: just mark passenger status)
         // In a real app, update Coach model 'isBooked' status back to false
-        booking.passengers.forEach(p => p.status = 'Cancelled');
+        booking.passengers.forEach(p => p.status = 'CAN');
 
         await booking.save();
 
