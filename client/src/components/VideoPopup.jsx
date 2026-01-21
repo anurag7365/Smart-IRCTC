@@ -5,11 +5,16 @@ const VideoPopup = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsOpen(true);
-        }, 1500); // Show after 1.5 seconds
+        const hasSeenVideo = sessionStorage.getItem('hasSeenIntroVideo');
 
-        return () => clearTimeout(timer);
+        if (!hasSeenVideo) {
+            const timer = setTimeout(() => {
+                setIsOpen(true);
+                sessionStorage.setItem('hasSeenIntroVideo', 'true');
+            }, 1500); // Show after 1.5 seconds
+
+            return () => clearTimeout(timer);
+        }
     }, []);
 
     const handleClose = () => {

@@ -119,6 +119,11 @@ const Navbar = () => {
                                         </div>
                                     </div>
                                     <div className="dropdown-content">
+                                        {user.role === 'admin' && (
+                                            <Link to="/admin/dashboard" className="dropdown-item">
+                                                <span>⚙️</span> Admin Dashboard
+                                            </Link>
+                                        )}
                                         <Link to="/bookings" className="dropdown-item">
                                             <span>📅</span> {t('My Bookings')}
                                         </Link>

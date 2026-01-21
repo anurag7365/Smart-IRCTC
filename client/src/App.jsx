@@ -22,6 +22,7 @@ import More from './pages/More';
 import ContactUs from './pages/ContactUs';
 import LiveTracking from './pages/LiveTracking';
 import MyTransactions from './pages/MyTransactions';
+import AdminDashboard from './pages/AdminDashboard';
 
 import { LanguageProvider } from './context/LanguageContext';
 
@@ -52,6 +53,7 @@ function App() {
           <Route path="/more" element={<More />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/tracking" element={<LiveTracking />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
       </Layout>
     </LanguageProvider>

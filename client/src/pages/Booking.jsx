@@ -21,7 +21,7 @@ const Booking = () => {
     const navigate = useNavigate();
 
     const [train, setTrain] = useState(null);
-    const [passengers, setPassengers] = useState([{ name: '', age: '', gender: 'Male', aadhaar: '', berthPreference: 'No Preference', isHandicapped: false }]);
+    const [passengers, setPassengers] = useState([{ name: '', age: '', gender: 'Male', aadhaar: '', berthPreference: 'No Preference', isHandicapped: false, handicapCardNo: '', handicapDob: '', handicapCertificate: null }]);
     const [selectedClass, setSelectedClass] = useState('');
 
     // Master List State
@@ -124,7 +124,7 @@ const Booking = () => {
     };
 
     const addPassenger = () => {
-        setPassengers([...passengers, { name: '', age: '', gender: 'Male', aadhaar: '', berthPreference: 'No Preference', isHandicapped: false }]);
+        setPassengers([...passengers, { name: '', age: '', gender: 'Male', aadhaar: '', berthPreference: 'No Preference', isHandicapped: false, handicapCardNo: '', handicapDob: '', handicapCertificate: null }]);
     };
 
     const removePassenger = (index) => {
@@ -375,6 +375,44 @@ const Booking = () => {
                                             <label style={{ fontSize: '13px', color: '#374151', cursor: 'pointer' }}>Handicapped?</label>
                                         </div>
                                     </div>
+
+                                    {/* Conditional Handicap Details */}
+                                    {p.isHandicapped && (
+                                        <div style={{ marginTop: '15px', padding: '15px', background: '#ffe4e6', borderRadius: '8px', border: '1px solid #fecdd3', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                            <div>
+                                                <label style={labelStyle}>UDID Number</label>
+                                                <input
+                                                    type="text"
+                                                    style={inputStyle}
+                                                    placeholder="Enter 18-digit UDID"
+                                                    maxLength="18"
+                                                    value={p.handicapCardNo || ''}
+                                                    onChange={(e) => handlePassengerChange(index, 'handicapCardNo', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={labelStyle}>Date of Birth (as on UDID)</label>
+                                                <input
+                                                    type="date"
+                                                    style={inputStyle}
+                                                    value={p.handicapDob || ''}
+                                                    onChange={(e) => handlePassengerChange(index, 'handicapDob', e.target.value)}
+                                                />
+                                            </div>
+                                            <div style={{ gridColumn: '1 / -1' }}>
+                                                <label style={labelStyle}>Upload Disability Certificate (UDID Card)</label>
+                                                <input
+                                                    type="file"
+                                                    accept=".pdf,.jpg,.jpeg,.png"
+                                                    style={{ ...inputStyle, padding: '7px' }}
+                                                    onChange={(e) => handlePassengerChange(index, 'handicapCertificate', e.target.files[0])}
+                                                />
+                                                <div style={{ fontSize: '11px', color: '#881337', marginTop: '5px' }}>
+                                                    * Please upload a valid UDID card copy (PDF/JPG/PNG). Carry original during journey.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
 
