@@ -6,7 +6,7 @@ const TicketView = ({ booking }) => {
 
     if (!booking || !booking.train || !booking.source || !booking.destination) return <div style={{ textAlign: 'center', color: 'red' }}>Ticket Data Incomplete. Please check My Bookings.</div>;
 
-    const { pnr, train, source, destination, journeyDate, passengers, totalAmount, classType } = booking;
+    const { pnr, train, source, destination, journeyDate, passengers, totalAmount, classType, hotelBooking } = booking;
     // Mock Transaction ID
     const transactionId = "10000" + Math.floor(Math.random() * 9000000000);
 
@@ -167,13 +167,44 @@ const TicketView = ({ booking }) => {
                 </table>
             </div>
 
+            {/* Hotel Booking Summary */}
+            {hotelBooking && (
+                <div style={{ padding: '10px', borderTop: '1px solid #000' }}>
+                    <div style={{ background: '#f0f0f0', fontWeight: 'bold', padding: '5px', marginBottom: '5px' }}>Hotel Accommodation Details</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', fontSize: '13px' }}>
+                        <div>
+                            <strong>Hotel Name</strong>
+                            <div>{hotelBooking.hotelName}</div>
+                        </div>
+                        <div>
+                            <strong>Check In / Out</strong>
+                            <div>{new Date(hotelBooking.checkInDate).toLocaleDateString()} - {new Date(hotelBooking.checkOutDate).toLocaleDateString()}</div>
+                        </div>
+                        <div>
+                            <strong>Rooms / Guests</strong>
+                            <div>{hotelBooking.rooms} Room(s) / {hotelBooking.guests} Guest(s)</div>
+                        </div>
+                        <div>
+                            <strong>Hotel Fare</strong>
+                            <div style={{ fontWeight: 'bold' }}>₹ {hotelBooking.price.toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Payment Details */}
             <div style={{ padding: '10px', borderTop: '1px solid #000' }}>
                 <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Payment Details</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', maxWidth: '400px' }}>
                     <span>Ticket Fare</span>
-                    <span>₹ {totalAmount.toFixed(2)}</span>
+                    <span>₹ {(totalAmount - (hotelBooking ? hotelBooking.price : 0)).toFixed(2)}</span>
                 </div>
+                {hotelBooking && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', maxWidth: '400px' }}>
+                        <span>Hotel Fare</span>
+                        <span>₹ {hotelBooking.price.toFixed(2)}</span>
+                    </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', maxWidth: '400px' }}>
                     <span>IRCTC Convenience Fee</span>
                     <span>₹ 11.80</span>

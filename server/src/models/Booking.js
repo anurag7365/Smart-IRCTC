@@ -66,6 +66,14 @@ const bookingSchema = new mongoose.Schema({
         mobile: { type: String, required: true },
         email: { type: String },
     },
+    hotelBooking: {
+        hotelName: { type: String },
+        price: { type: Number },
+        rooms: { type: Number },
+        guests: { type: Number },
+        checkInDate: { type: Date },
+        checkOutDate: { type: Date }
+    },
 }, {
     timestamps: true,
 });

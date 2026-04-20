@@ -14,7 +14,8 @@ const createBooking = async (req, res) => {
         classType,
         passengers, // Array of { name, age, gender }
         contactDetails,
-        totalAmount
+        totalAmount,
+        hotelBooking
     } = req.body;
 
     try {
@@ -43,6 +44,7 @@ const createBooking = async (req, res) => {
             passengers: allocatedPassengers,
             totalAmount,
             contactDetails,
+            hotelBooking,
             status: 'Booked'
         });
 

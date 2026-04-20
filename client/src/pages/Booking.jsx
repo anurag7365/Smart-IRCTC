@@ -24,6 +24,19 @@ const Booking = () => {
     const [passengers, setPassengers] = useState([{ name: '', age: '', gender: 'Male', aadhaar: '', berthPreference: 'No Preference', isHandicapped: false, handicapCardNo: '', handicapDob: '', handicapCertificate: null }]);
     const [selectedClass, setSelectedClass] = useState('');
 
+    // Hotel State
+    const [selectedHotel, setSelectedHotel] = useState(null);
+    const [hotelRooms, setHotelRooms] = useState(1);
+    const [hotelGuests, setHotelGuests] = useState(1);
+    const [hotelCheckInDate, setHotelCheckInDate] = useState(date || '');
+    const [hotelCheckOutDate, setHotelCheckOutDate] = useState('');
+
+    const mockHotels = [
+        { id: 'h1', name: 'Grand Palace Hotel (0.5 km)', price: 2500, stars: 5 },
+        { id: 'h2', name: 'Station View Inn (0.1 km)', price: 1200, stars: 3 },
+        { id: 'h3', name: 'City Center Suites (1.2 km)', price: 1800, stars: 4 }
+    ];
+
     // Master List State
     const [masterList, setMasterList] = useState([]);
     const [showMasterList, setShowMasterList] = useState(false);
@@ -141,7 +154,9 @@ const Booking = () => {
         }
 
         try {
-            const totalFare = price * passengers.length;
+            const ticketFare = price * passengers.length;
+            const hotelFare = selectedHotel ? selectedHotel.price * hotelRooms : 0;
+            const totalFare = ticketFare + hotelFare;
 
             const bookingData = {
                 trainId: train._id,
@@ -151,7 +166,17 @@ const Booking = () => {
                 classType: selectedClass,
                 passengers: passengers,
                 contactDetails: { mobile: '9999999999', email: user.email },
-                totalAmount: totalFare
+                totalAmount: totalFare,
+                ...(selectedHotel && {
+                    hotelBooking: {
+                        hotelName: selectedHotel.name,
+                        price: hotelFare,
+                        rooms: hotelRooms,
+                        guests: hotelGuests,
+                        checkInDate: hotelCheckInDate,
+                        checkOutDate: hotelCheckOutDate
+                    }
+                })
             };
 
             // Navigate to Payment Page instead of direct API call
@@ -433,10 +458,63 @@ const Booking = () => {
                             )}
                         </div>
 
+                        {/* Hotel Suggestion Section */}
+                        <div style={{ ...modernCard, marginTop: '25px', borderLeft: '5px solid #007bff' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <div>
+                                    <h3 style={{ margin: 0, fontSize: '18px', color: '#1f2937' }}>Stay Near Destination Station</h3>
+                                    <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>Book your hotel before arrival at {destStation ? destStation.name : to}</div>
+                                </div>
+                                <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>Recommended</span>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+                                {mockHotels.map(hotel => (
+                                    <div 
+                                        key={hotel.id} 
+                                        onClick={() => setSelectedHotel(selectedHotel?.id === hotel.id ? null : hotel)}
+                                        style={{ 
+                                            border: selectedHotel?.id === hotel.id ? '2px solid #007bff' : '1px solid #d1d5db',
+                                            borderRadius: '8px', 
+                                            padding: '15px', 
+                                            cursor: 'pointer',
+                                            background: selectedHotel?.id === hotel.id ? '#eff6ff' : 'white',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#1f2937' }}>{hotel.name}</div>
+                                        <div style={{ color: '#fbbf24', fontSize: '12px', margin: '4px 0' }}>{'★'.repeat(hotel.stars)}</div>
+                                        <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#007bff', marginTop: '10px' }}>₹ {hotel.price} <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'normal' }}>/ night / room</span></div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {selectedHotel && (
+                                <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '15px' }}>
+                                    <div>
+                                        <label style={labelStyle}>Rooms</label>
+                                        <input type="number" min="1" value={hotelRooms} onChange={e => setHotelRooms(parseInt(e.target.value) || 1)} style={inputStyle} />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Guests</label>
+                                        <input type="number" min="1" value={hotelGuests} onChange={e => setHotelGuests(parseInt(e.target.value) || 1)} style={inputStyle} />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Check-in Date</label>
+                                        <input type="date" value={hotelCheckInDate} onChange={e => setHotelCheckInDate(e.target.value)} style={inputStyle} required />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Check-out Date</label>
+                                        <input type="date" value={hotelCheckOutDate} onChange={e => setHotelCheckOutDate(e.target.value)} style={inputStyle} required />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <div style={{ ...modernCard, marginTop: '25px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1f2937' }}>Total: ₹ {(price * passengers.length + 11.80).toFixed(2)}</div>
-                                <div style={{ fontSize: '12px', color: '#6b7280' }}>{passengers.length} Passenger(s) | Includes GST & Fees</div>
+                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1f2937' }}>Total: ₹ {(price * passengers.length + (selectedHotel ? selectedHotel.price * hotelRooms : 0) + 11.80).toFixed(2)}</div>
+                                <div style={{ fontSize: '12px', color: '#6b7280' }}>{passengers.length} Passenger(s) {selectedHotel ? `| 1 Hotel` : ''} | Includes GST & Fees</div>
                             </div>
                             <button type="submit" style={{
                                 background: '#fb792b',
@@ -473,11 +551,21 @@ const Booking = () => {
                             <span>₹ 11.80</span>
                         </div>
 
+                        {selectedHotel && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '14px', color: '#4b5563' }}>
+                                <div>
+                                    <span>Hotel Fare</span>
+                                    <div style={{ fontSize: '11px', color: '#9ca3af' }}>{selectedHotel.name} ({hotelRooms} Room)</div>
+                                </div>
+                                <span style={{ fontWeight: 'bold' }}>₹ {selectedHotel.price * hotelRooms}</span>
+                            </div>
+                        )}
+
                         <div style={{ borderTop: '1px dashed #d1d5db', margin: '15px 0' }}></div>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontWeight: '600', color: '#111827' }}>Total Payable</span>
-                            <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#213d77' }}>₹ {(price * passengers.length + 11.80).toFixed(2)}</span>
+                            <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#213d77' }}>₹ {(price * passengers.length + (selectedHotel ? selectedHotel.price * hotelRooms : 0) + 11.80).toFixed(2)}</span>
                         </div>
 
                         <div style={{ marginTop: '20px', background: '#e0f2fe', padding: '10px', borderRadius: '6px', fontSize: '12px', color: '#0369a1' }}>

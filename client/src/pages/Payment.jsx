@@ -147,7 +147,7 @@ const Payment = () => {
                     <div className="summary-header">Transaction Summary</div>
                     <div className="summary-row">
                         <span>Ticket Fare</span>
-                        <span>₹ {bookingData.totalAmount.toFixed(2)}</span>
+                        <span>₹ {(bookingData.totalAmount - (bookingData.hotelBooking ? bookingData.hotelBooking.price : 0)).toFixed(2)}</span>
                     </div>
                     <div className="summary-row">
                         <span>IRCTC Convenience Fee</span>
@@ -157,6 +157,12 @@ const Payment = () => {
                         <span>Travel Insurance</span>
                         <span>₹ 0.00</span>
                     </div>
+                    {bookingData.hotelBooking && (
+                        <div className="summary-row" style={{ borderTop: '1px dashed #ccc', paddingTop: '10px', marginTop: '10px' }}>
+                            <span>Hotel Fare</span>
+                            <span>₹ {bookingData.hotelBooking.price.toFixed(2)}</span>
+                        </div>
+                    )}
 
                     <div className="total-row">
                         <span>Total Amount</span>
